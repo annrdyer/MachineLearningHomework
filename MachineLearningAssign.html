@@ -80,7 +80,7 @@ trainFinal     &lt;- train[,colSums(is.na(test))&lt; 1]
 trainFinal &lt;- trainFinal[,8:60]  </code></pre>
 </div>
 <div id="data-partition-for-test-and-validation-data-sets" class="section level3">
-<h3>Data Partition for Test and Validation Data Sets</h3>
+<h3>Data Partition of Train Data Set</h3>
 <p>The train data set was split into two data sets: 70% of the data was used for model building and 30% of the data was reserved for out of sample error estimation.</p>
 <pre class="r"><code>library(caret)
 set.seed(12345)
