@@ -1,0 +1,95 @@
+## Practical Machine Learning Assignment
+
+### Overview
+ This report describes how a machine learning algorithm was created to predict activity quality from activity monitors.  The model predicts the activity classe using data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. Cross validation was used for each of 3 models tested. The selected model was a Random Forest model.  30% of the test data was held out as a validation data set in order to estimate the Random Forest model's out of sample error. The out of sample accuracy was 98.8%.
+
+```{r, include=FALSE}
+# install.packages("doParallel")
+library(doParallel)
+registerDoParallel(cores=2)
+```
+
+
+### Data Selection for Model Inputs
+52 variables were selected for model inputs. These variables were selected because there were no missing values in both the train and test data sets. 
+These 52 variables included belt, forearm, arm, and dumbell accelerometer measurements. Variables that were not measurements (user name, timestamps, and windows) were not used.
+
+```{r, echo=TRUE, message=FALSE}
+train = read.csv("~/DataScience/PredictiveModeling/pml-training.csv")
+test  = read.csv("~/DataScience/PredictiveModeling/pml-testing.csv")
+
+# 60 variables without missing values in both train and test data sets
+trainFinal     <- train[,colSums(is.na(test))< 1] 
+
+# Remove first 7 non-measurement variables
+trainFinal <- trainFinal[,8:60]  
+```
+
+### Data Partition for Test and Validation Data Sets
+The train data set was split into two data sets:  70% of the data was used for model building and 30% of the data was reserved for out of sample error estimation.
+
+
+```{r, echo=TRUE, message=FALSE}
+library(caret)
+set.seed(12345)
+trainIndex = createDataPartition(trainFinal$classe, p = 0.70,list=FALSE)
+training = trainFinal[trainIndex,]  
+testing  = trainFinal[-trainIndex,]
+```
+
+### Model Building 
+Three different models were fit to the training data.  Models tested were a classification tree, generalized boosted model, and a random forest model.
+Five-fold cross validation was used for each of the 3 models created.  
+```{r, echo=TRUE, results="hide", message=FALSE}
+# define training control to be k-fold cross validation with 5 folds
+train_control <- trainControl(method="cv", number=5)
+
+# Fit a classification tree
+set.seed(12345)
+fitTree  <-  train(classe ~., method="rpart", trControl=train_control, data=training)
+
+# Fit a generalized boosted model
+set.seed(12345)
+fitBoosted  <-  train(classe ~., method="gbm", trControl=train_control, data=training) 
+
+# Fit a random forest
+set.seed(12345)
+fitForest  <-  train(classe ~., method="rf", trControl=train_control, data=training) 
+```
+
+### Model Selection 
+Predictions were generated for each of the 3 models using the training data set.  The model with the highest accuracy, the Random Forest model,
+was selected as the final model.  Accuracies for each model are listed below.
+
+Accuracy of Classification Tree:
+```{r, echo=TRUE}
+confusionMatrix(training$classe,predict(fitTree,training))$overall  
+```
+Accuracy of Generalized Boosted Model:
+```{r, echo=TRUE}
+confusionMatrix(training$classe,predict(fitBoosted,training))$overall 
+```
+Accuracy of Random Forest:
+```{r, echo=TRUE}
+confusionMatrix(training$classe,predict(fitForest,training))$overall   
+```
+
+### Model Validation: Out of Sample Error Estimation
+The 30% hold out testing data set was used to estimate the out of sample error for the selected Random Forest model.  The out of sample accuracy was 98.8 %.
+
+```{r, echo=TRUE}
+confusionMatrix(testing$classe,predict(fitForest,testing))$overall
+
+```
+
+### Random Forest Model Prediction
+The 20 cases from the test data set were used to generate predictions.  The predictions were submitted for grading. All predictions were correct.  
+
+```{r, echo=TRUE}
+predictions <- predict(fitForest,test)
+predictions
+```
+
+ 
+
+
