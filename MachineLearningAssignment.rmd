@@ -25,7 +25,7 @@ trainFinal     <- train[,colSums(is.na(test))< 1]
 trainFinal <- trainFinal[,8:60]  
 ```
 
-### Data Partition for Test and Validation Data Sets
+### Data Partition of Train Data Set
 The train data set was split into two data sets:  70% of the data was used for model building and 30% of the data was reserved for out of sample error estimation.
 
 
